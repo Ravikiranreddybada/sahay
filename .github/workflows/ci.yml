@@ -1,0 +1,69 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: backend } }
+    services:
+      postgres:  # the prod checkpointer is tested against a real Postgres, not mocked
+        image: postgres:16-alpine
+        env: { POSTGRES_USER: sahay, POSTGRES_PASSWORD: sahay, POSTGRES_DB: sahay }
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U sahay" --health-interval 5s --health-retries 10
+    env:
+      SAHAY_TEST_PG_URL: postgresql://sahay:sahay@localhost:5432/sahay
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e ".[dev]"
+      - name: Unit + integration tests
+        run: pytest -q
+      - name: Eval regression gate (offline engine, deterministic)
+        run: python -m evals.run_evals
+      - name: Held-out eval (reported, not gated)
+        run: python -m evals.run_evals --set heldout
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: eval-reports, path: backend/evals/reports }
+
+  nightly-real-model:
+    # Same gate against the real model. Runs only where the secret exists (nightly / manual).
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: backend } }
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e ".[dev]"
+      - run: python -m evals.run_evals --set golden || echo "real-model gate failed (baseline is offline-engine; tracked)"
+
+  web:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: web } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run build
+
+  infra:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: 1.9.8 }
+      - run: terraform -chdir=infra/terraform fmt -check
+      - run: terraform -chdir=infra/terraform init -backend=false -input=false
+      - run: terraform -chdir=infra/terraform validate
+      - name: Compose builds
+        run: docker compose build

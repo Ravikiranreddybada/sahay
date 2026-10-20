@@ -1,0 +1,226 @@
+{
+  "title": "Choose Sahay's visual world",
+  "question": "The roll assigned the Prescription Pad & Rubber Stamp. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Prescription Pad & Rubber Stamp",
+      "kicker": "THE ROLL",
+      "lineage": "Indian clinic Rx pads, OPD slips, doctor's rubber stamps",
+      "thesis": "Every answer is written on the clinic's pad and stamped only when it is checked.",
+      "palette": [
+        "#F4F4EF",
+        "#1B1B19",
+        "#7A1F2B",
+        "#1F3FA6",
+        "#4E3D8F"
+      ],
+      "materials": [
+        "printed letterhead band",
+        "ruled pad stock",
+        "Reynolds-blue ballpoint",
+        "violet stamp-pad ink"
+      ],
+      "viewport": "Chat is a pad sheet: maroon letterhead strip with member + Rx glyph, answers as typed lines, citations as stamped reference codes, the verifier as a round stamp in the margin.",
+      "risk": "Turns costume if the stamp and letterhead are used as decoration instead of as real states.",
+      "raised": [
+        {
+          "from": "challenger-vertical-feed",
+          "raise": "The current answer owns the sheet; older turns fold into a stub column, so one thing is read at a time."
+        },
+        {
+          "from": "challenger-timetable-rack",
+          "raise": "Rank by weight and case, not size: three type sizes total across the whole product."
+        },
+        {
+          "from": "challenger-zoo-map",
+          "raise": "Flat unmodulated ink, zero drop shadows; separation is rules and paper only."
+        },
+        {
+          "from": "challenger-type-specimen",
+          "raise": "One big number per view (HbA1c 7.9) carries the hierarchy; everything else stays small."
+        }
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "The Pathology Report",
+      "kicker": "IMPECCABLE\u2019S PICK",
+      "lineage": "Indian diagnostic lab printouts (letterhead, range column, bold H/L flags, pathologist signature)",
+      "thesis": "Every screen is a signed report: value, range, flag, source, signature.",
+      "palette": [
+        "#FFFFFF",
+        "#141414",
+        "#12355B",
+        "#C8102E",
+        "#D9D9D6"
+      ],
+      "materials": [
+        "laser-printed report stock",
+        "hairline table rules",
+        "bold flag letters",
+        "signature block"
+      ],
+      "viewport": "Health tab as a report: patient header block, tabular values with a range column and H/L flags, sparkline in the margin, a 'checked by verifier' signature block at the foot.",
+      "risk": "The most familiar choice for health data; can read as a plain printout if the type is timid."
+    },
+    {
+      "id": "challenger-ticket-wallet",
+      "label": "Ticket Wallet",
+      "verdict": "competitive",
+      "lineage": "jet-age airline ticket wallets, carbon coupons",
+      "thesis": "Every order, claim and dose is a coupon that gets stamped, used or voided, never deleted.",
+      "palette": [
+        "#FFFFFF",
+        "#14254A",
+        "#C62828",
+        "#5A3A7A"
+      ],
+      "materials": [
+        "carbon-copy coupons",
+        "tabbed coupon heads",
+        "VOID stamp"
+      ],
+      "viewport": "Order + claim answers render as coupons; vaccine journey as a coupon book where used doses tear off.",
+      "case": "Holds product clarity (honest states: validated, used, void); loses audience identification to the Rx pad.",
+      "risk": "Travel metaphor is foreign to a health task; feels themed outside orders.",
+      "hero": "https://impeccable.style/worlds/cards/vernacular-ephemera-jet-age-ticket-wallet-hero.webp"
+    },
+    {
+      "id": "challenger-japanese-density",
+      "label": "High-Density Modules",
+      "verdict": "competitive",
+      "lineage": "Japanese contemporary high-density web",
+      "thesis": "Pack the whole case onto one screen: tiny type, ruled modules, one red tab each.",
+      "palette": [
+        "#FFFFFF",
+        "#111111",
+        "#D7261E",
+        "#E6E6E6"
+      ],
+      "materials": [
+        "hairline ruled modules",
+        "small header tabs",
+        "compact gothic"
+      ],
+      "viewport": "Health and ops as a mosaic of ruled modules: meds, flags, labs, brief, traces all visible without scrolling.",
+      "case": "Holds product clarity for the ops console; loses audience identification for older caregivers.",
+      "risk": "Too dense for caregivers reading on a laptop at night.",
+      "hero": "https://impeccable.style/worlds/cards/japanese-high-density-web-hero.webp"
+    },
+    {
+      "id": "challenger-vertical-feed",
+      "label": "Vertical Feed",
+      "verdict": "declined",
+      "lineage": "full-bleed vertical video feeds",
+      "thesis": "One item owns the screen; the next is one snap away.",
+      "palette": [
+        "#000000",
+        "#FFFFFF"
+      ],
+      "materials": [
+        "full-bleed media",
+        "glyph rail"
+      ],
+      "viewport": "Each answer full screen.",
+      "case": "Fuses poorly: health records are tables, not media.",
+      "risk": "Hides the source and the history.",
+      "kept": "The current answer owns the sheet.",
+      "hero": "https://impeccable.style/worlds/cards/pop-culture-shelf-vertical-video-feed-surface-hero.webp"
+    },
+    {
+      "id": "challenger-timetable-rack",
+      "label": "Timetable Slide Rack",
+      "verdict": "declined",
+      "lineage": "1971 pocket airline timetable on a light table",
+      "thesis": "One type size; rank carried by weight, case and reversal.",
+      "palette": [
+        "#D9A521",
+        "#2F3A40",
+        "#F3EEDD",
+        "#D2412B",
+        "#2E6B4A"
+      ],
+      "materials": [
+        "tinted acetate",
+        "lit goldenrod bed"
+      ],
+      "viewport": "Raked slides of answers.",
+      "case": "Fuses poorly: raked panes fight long medical text.",
+      "risk": "Unreadable for long answers.",
+      "kept": "Rank by weight and case, not size.",
+      "hero": "https://impeccable.style/worlds/cards/rw-timetable-slide-rack-hero.webp"
+    },
+    {
+      "id": "challenger-zoo-map",
+      "label": "Guide Map",
+      "verdict": "declined",
+      "lineage": "zoo and gardens guide maps",
+      "thesis": "Areas as flat swelling lobes of colour.",
+      "palette": [
+        "#8ED462",
+        "#F5F1E4",
+        "#2C2E2A",
+        "#FF705D"
+      ],
+      "materials": [
+        "flat colour lobes"
+      ],
+      "viewport": "Family members as lobes.",
+      "case": "Fuses poorly: playful map undercuts medical trust.",
+      "risk": "Toy-like for health data.",
+      "kept": "Flat unmodulated colour, no shadows.",
+      "hero": "https://impeccable.style/worlds/cards/aww2-zoo-gardens-guide-map-hero.webp"
+    },
+    {
+      "id": "challenger-type-specimen",
+      "label": "Type Specimen",
+      "verdict": "declined",
+      "lineage": "interactive variable-font specimens",
+      "thesis": "Hierarchy by scale contrast alone.",
+      "palette": [
+        "#FAFAF8",
+        "#111111",
+        "#E4002B"
+      ],
+      "materials": [
+        "flat paper",
+        "giant glyphs"
+      ],
+      "viewport": "One giant value per screen.",
+      "case": "Fuses poorly: the product is not about type.",
+      "risk": "Pure style exercise.",
+      "kept": "One big number per view carries the hierarchy.",
+      "hero": "https://impeccable.style/worlds/cards/variable-font-specimen-hero.webp"
+    }
+  ],
+  "reroll": {
+    "registers": [
+      "safer",
+      "bolder"
+    ]
+  },
+  "buildPath": {
+    "value": "code",
+    "toggle": false
+  },
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "A clean health-app dashboard, executed with full craft.",
+    "palette": [
+      "#FFFFFF",
+      "#0F172A",
+      "#0F766E",
+      "#F1F5F9"
+    ],
+    "materials": [
+      "white cards",
+      "soft teal accent",
+      "rounded corners"
+    ],
+    "viewport": "Sidebar nav, white cards with stats, chat in the center.",
+    "risk": "Looks like every other health app by design."
+  },
+  "steer": true
+}

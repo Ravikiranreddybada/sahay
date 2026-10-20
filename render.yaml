@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: sahay-api
+    runtime: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - { key: SAHAY_ENV, value: prod }
+      - { key: SAHAY_DEV_LOGIN, value: "true" }   # public demo only: set false for real users
+      - { key: SAHAY_AUTH_SECRET, generateValue: true }
+      - { key: WEB_CONCURRENCY, value: "1" }       # free tier = 512 MB
+      - { key: ANTHROPIC_API_KEY, sync: false }    # optional; unset = offline engine

@@ -1,0 +1,6 @@
+# ADR-0017: Vaccine reminders — opt-in write, exactly-once sweep
+
+**Context.** The vaccination SOP promises reminders 7 days and 1 day before a dose. Reminders are outbound messages to a parent's phone: a duplicate is spam, a miss is a missed dose.
+**Decision.** Opt-in is a write tool (`set_vaccination_reminder`) and so needs user confirmation like any write. A sweep (background every hour; on demand from ops) computes due reminders and *claims* each `(child, vaccine, due date, offset)` with an `INSERT OR IGNORE` before sending, so two replicas sweeping at once cannot both send. One message per child per due day; a missed sweep sends the most urgent reminder that still applies, never the 7-day and 1-day ones together; overdue doses get one nudge to a pediatrician (the assistant never sets a catch-up schedule).
+**Alternatives.** EventBridge Scheduler per dose (exact timing, but one schedule per dose to keep in sync with schedule changes); cron + "sent" flag updated after sending (sends twice on a crash between send and update).
+**Consequences.** + Exactly-once under concurrency, verified by test. − At-most-once on a crash after claiming and before sending; acceptable for a reminder (the 1-day one still fires). Prod moves the claim table to Postgres and the sweep to a worker.

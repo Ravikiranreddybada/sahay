@@ -1,0 +1,6 @@
+# ADR-0019: Family records behind scoped, expiring consent — enforced in the MCP server
+
+**Context.** In India the person managing care is often an adult child, not the patient. ABDM moves records between providers; it does not give a caregiver a consented, scoped view. Reading a parent's records "because the account holder asked" is an IDOR by another name.
+**Decision.** An account has `members` (self + dependents). A non-self member's medicines / labs / appointments are returned only under an unexpired, unrevoked `consents` row whose scopes include the requested one. The check runs inside the MCP server (`_member()`), so the chat, the Health tab and any external MCP client get the same answer; the hub still injects `user_id`, and a member is resolved only *within* the caller's account (a name, relation or member id from another account resolves to "No family member"). Revoking access is a write tool behind the confirmation card. Expired consent returns a clear message, not partial data.
+**Alternatives.** Share the parent's login (no audit, no scope); a consent check in the API layer only (the MCP server stays open to other clients).
+**Consequences.** + Least privilege per scope, testable (`test_health.py`, golden `health-consent-expired`, `health-idor-no-such-member`). − Consent granting lives in the member's own app (not built here; seeded).

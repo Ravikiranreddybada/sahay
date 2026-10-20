@@ -1,0 +1,6 @@
+# ADR-0022: OTLP export with GenAI semantic conventions and a privacy allow-list
+
+**Context.** Teams already run Grafana / Tempo, Langfuse or Phoenix. The own span store answers "which node pulled stale context?", but ops wants Sahay's turns next to the rest of their services. This is health data: a generic exporter would ship tool results (medicines, lab values) to a third-party backend.
+**Decision.** `obs/otel.py` converts a stored trace to OTLP/JSON using OpenTelemetry GenAI names (`invoke_agent` root, `chat {model}` with `gen_ai.usage.*`, `execute_tool {name}` with `gen_ai.tool.name` and `mcp.method.name`). Only an allow-list of attributes leaves: routes, models, token counts, tool *names*, verifier criteria, threat-rule ids, triage category. Never arguments, results, retrieved text, prompts or answers (tested). Export is a bounded queue drained by a daemon thread; a slow collector never slows a turn. `GET /v1/traces/{id}/otlp` serves the same payload.
+**Alternatives.** Vendor SDK in the hot path (latency, lock-in); export everything and rely on the backend's access control (data leaves the trust boundary).
+**Consequences.** + Drop-in for any OTLP/HTTP collector; DPDP-friendly by construction. − Debugging content still needs the in-house trace view.

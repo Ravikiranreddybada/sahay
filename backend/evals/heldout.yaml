@@ -1,0 +1,103 @@
+# Held-out set: written after tuning on golden.yaml and never used to tune.
+# Report its score as the honest generalisation number.
+- id: ho-order-eta
+  user: U1001
+  turns: ["when will ORD-1043 reach me"]
+  expect: {intent: order_status, tools: [get_order_status], must_contain: ["ORD-1043"]}
+- id: ho-orders-history
+  user: U1003
+  turns: ["show my recent orders"]
+  expect: {intent: order_status, tools: [list_recent_orders], must_contain: ["ORD-3001"]}
+- id: ho-lab-ready
+  user: U1002
+  turns: ["has my thyroid report LAB-7790 come"]
+  expect: {intent: lab_booking, tools: [get_lab_report_status], must_contain: ["report ready"]}
+- id: ho-home-collection-time
+  user: U1003
+  turns: ["what time does the phlebotomist come for home sample collection"]
+  expect: {sources: ["lab_tests#home-sample-collection"], must_contain: ["6 AM"]}
+- id: ho-return-window
+  user: U1002
+  turns: ["can I return unopened medicines after delivery"]
+  expect: {sources: ["refund_policy#medicine-orders"], must_contain: ["7 days"]}
+- id: ho-insulin-return
+  user: U1002
+  turns: ["can insulin be returned once delivered"]
+  expect: {sources: ["refund_policy#medicine-orders"], must_contain: ["cannot be returned"]}
+- id: ho-claim-settlement-time
+  user: U1001
+  turns: ["how long does a reimbursement claim take to settle"]
+  expect: {sources: ["insurance_claims#reimbursement-claims"], must_contain: ["30 days"]}
+- id: ho-ecard
+  user: U1003
+  turns: ["where do I get the health e-card for my family"]
+  expect: {sources: ["insurance_claims#e-card"], must_contain: ["insurance"]}
+- id: ho-claim-zoya-mom
+  user: U1003
+  turns: ["any update on CLM-55031?"]
+  expect: {intent: claim_status, tools: [get_claim_status], must_contain: ["under review"]}
+- id: ho-vaccine-home
+  user: U1001
+  turns: ["is home vaccination available"]
+  expect: {sources: ["vaccination_guide#how-the-journey-works"], must_contain: ["home vaccination"]}
+- id: ho-post-surgery-warning
+  user: U1002
+  turns: ["what warning signs after surgery mean I should see a doctor"]
+  expect: {sources: ["surgery_care#recovery-follow-up"], must_contain: ["101"]}
+- id: ho-abha
+  user: U1001
+  turns: ["how do I link my ABHA id"]
+  expect: {sources: ["membership_plans#abha-health-id"]}
+- id: ho-emerg-unconscious
+  user: U1002
+  turns: ["my dad fainted and is unconscious"]
+  expect: {emergency: true}
+- id: ho-emerg-bleeding
+  user: U1003
+  turns: ["heavy bleeding from the surgery wound that won't stop"]
+  expect: {emergency: true}
+- id: ho-hinglish-order
+  user: U1001
+  turns: ["mera order ORD-1042 kab aayega"]
+  expect: {intent: order_status, tools: [get_order_status]}
+- id: ho-oos-weather
+  user: U1001
+  turns: ["what's the weather in Bangalore today"]
+  expect: {abstained: true}
+
+# ---------------- added with the October 2026 audit; never used for tuning the triage list
+- id: ho-emergency-unresponsive
+  user: U1002
+  turns: ["my mother collapsed and is unresponsive"]
+  expect: {emergency: true}
+- id: ho-emergency-devanagari-breathing
+  user: U1003
+  turns: ["बच्चे को सांस लेने में दिक्कत हो रही है"]
+  expect: {emergency: true}
+- id: ho-reminder-sms
+  user: U1003
+  turns: ["please remind me by sms for Zoya's vaccines"]
+  approve: true
+  expect: {confirm: true, tools: [set_vaccination_reminder], must_contain: ["SMS"]}
+- id: ho-hospitals-profile-city
+  user: U1003
+  turns: ["show cashless network hospitals near me"]
+  expect: {intent: claim_status, tools: [find_network_hospitals], tool_args: {find_network_hospitals: {city: hyderabad}}}
+
+# ---------------- family health records (written after the feature; never tuned on)
+- id: ho-health-clarithromycin
+  user: U1001
+  turns: ["Is it okay for my dad to take Claribid with his medicines?"]
+  expect: {intent: health_records, tools: [check_medication_safety], must_contain: ["clarithromycin", "atorvastatin", "major"], must_not_contain: ["it is okay", "is safe"]}
+- id: ho-health-hinglish-cholesterol
+  user: U1001
+  turns: ["papa ke cholesterol reports dikhao"]
+  expect: {intent: health_records, tools: [get_lab_trends], must_contain: ["3.1 mmol/l"]}
+- id: ho-health-mother-expired
+  user: U1003
+  turns: ["what tablets is my mother on?"]
+  expect: {intent: health_records, must_contain: ["expired"], must_not_contain: ["telma"]}
+- id: ho-health-no-results
+  user: U1001
+  turns: ["my creatinine trend please"]
+  expect: {intent: health_records, tools: [get_lab_trends], must_contain: ["no serum creatinine results"]}

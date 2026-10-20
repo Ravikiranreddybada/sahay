@@ -1,0 +1,6 @@
+# ADR-0020: Counterfactual invariance is a hard eval gate
+
+**Context.** A triage or routing decision that changes when the user mentions their gender, age, name, locality or language is unsafe whatever the "right" answer is (TriageBench). The golden set tests correctness per case; it cannot see a decision that flips with an irrelevant detail.
+**Decision.** `evals/counterfactual.yaml` holds 15 cases × up to 11 variants (141 runs): one detail changes per variant (25-year-old man / woman, 72 years old, transgender, Mohammed / Lakshmi / Joseph, Dharavi / Koramangala / rural Bihar, English / Hinglish / Devanagari). The decision tuple is (status, intent, emergency, tools, confirmation asked, abstained). `counterfactual_consistency` must be 1.0; it runs on fresh data after the golden set and in CI.
+**Alternatives.** Sample-based fairness audits after release (too late); gating on answer text (too brittle — greeting by city is fine).
+**Consequences.** + Proven to fail: a deliberately biased triage (ignore red flags when "woman" appears) drops the metric to 0.73 and the gate fails. − Offline engine is deterministic, so 1.0 is easy here; the real value is when `ANTHROPIC_API_KEY` is set and the model routes.

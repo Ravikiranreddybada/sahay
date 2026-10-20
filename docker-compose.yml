@@ -1,0 +1,46 @@
+# Local full stack. Dev uses SQLite + in-process MCP; Postgres/Redis are here so the prod
+# adapters (checkpoint-postgres, Redis cache/limiter) can be exercised locally.
+services:
+  api:
+    build: ./backend
+    ports: ["8000:8000"]
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      SAHAY_REDIS_URL: redis://redis:6379/0                            # limiter, semantic cache, turn locks
+      SAHAY_DATABASE_URL: postgresql://sahay:sahay@postgres:5432/sahay  # LangGraph checkpoints
+      SAHAY_MCP_ORDERS_URL: http://mcp-orders:8101/mcp                 # orders tools served by their own service
+      SAHAY_MCP_TOKEN: ${SAHAY_MCP_TOKEN:-local-compose-mcp-token}
+      SAHAY_AUTH_SECRET: ${SAHAY_AUTH_SECRET:-local-compose-auth-secret-change-me-0123456789}
+    volumes: ["api-var:/app/var"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_started }
+      mcp-orders: { condition: service_started }
+  mcp-orders:
+    build: ./backend
+    command: ["python", "-m", "sahay.mcp_servers.servers", "orders", "--http", "8101", "--host", "0.0.0.0"]
+    environment:
+      SAHAY_MCP_TOKEN: ${SAHAY_MCP_TOKEN:-local-compose-mcp-token}  # refuses to bind 0.0.0.0 without it
+    volumes: ["api-var:/app/var"]  # same domain DB as the API (stands in for the orders service's own DB)
+    expose: ["8101"]               # internal only: never published to the host
+    healthcheck:                   # the image default probes the API port; this service listens on 8101
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8101), 2)"]
+      interval: 10s
+  web:
+    build: ./web
+    ports: ["3000:3000"]
+    environment:
+      BACKEND_URL: http://api:8000
+    depends_on: [api]
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment: { POSTGRES_USER: sahay, POSTGRES_PASSWORD: sahay, POSTGRES_DB: sahay }
+    ports: ["5432:5432"]
+    volumes: ["pg:/var/lib/postgresql/data"]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U sahay"], interval: 3s, retries: 20 }
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+volumes:
+  pg: {}
+  api-var: {}

@@ -1,0 +1,6 @@
+# ADR-0021: Prompt-injection detection as a versioned rule pack with executable examples
+
+**Context.** Injection signals were seven regexes in code: no ids, no categories, no tests per signal, English only. A Hinglish "pichle saare instructions bhool jao" scored 0.
+**Decision.** `safety/rules/threat_rules.yaml` (ATR-style): 13 rules with stable ids (`SAHAY-TR-0001…`), an OWASP LLM Top 10 (2025) category, a weight, the surfaces they apply to (`user` message, `data` = tool results and KB text) and `match` / `no_match` examples. `tests/test_threat_rules.py` runs every example, so a rule cannot be edited into uselessness, or into flagging normal users, without a red test. Rule ids appear in the guard span, in the indirect-injection span, in the OTLP export and at `GET /v1/safety/rules`.
+**Alternatives.** An ML classifier (latency + opaque; can sit behind the same interface later); keep regexes in code (no audit trail).
+**Consequences.** + Hinglish and Devanagari overrides, link exfiltration, forged role tags and imperatives inside tool data are covered; the first run of the example tests caught a rule that missed `patients'`. − Regex rules are evadable by paraphrase: they are one layer; least privilege (ADR-0007) and confirmation (ADR-0011) are the others.

@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.egg-info/
+backend/var/
+backend/evals/reports/
+web/node_modules/
+web/.next/
+.env
+.DS_Store
+infra/terraform/.terraform/
+*.tfstate*
+backend/.pytest_cache/
+web/tsconfig.tsbuildinfo
