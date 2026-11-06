@@ -305,7 +305,7 @@ async def get_trace_otlp(trace_id: str, req: Request) -> dict[str, Any]:
     """The trace as OTLP/JSON (GenAI semantic conventions, privacy allow-list): POST it to any collector."""
     t = await get_trace(trace_id, req)
     mode = _agent(req).deps.router.mode
-    return to_otlp(t, service_version=app.version, provider="sahay.offline" if mode == "offline" else "anthropic")
+    return to_otlp(t, service_version=app.version, provider="sahay.offline" if mode == "offline" else mode)
 
 
 @app.get("/v1/safety/rules", dependencies=[Depends(auth.ops)])

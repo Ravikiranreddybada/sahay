@@ -4,16 +4,19 @@ import { Channels } from "@/components/Channels";
 import { Chat } from "@/components/Chat";
 import { Evals } from "@/components/Evals";
 import { Health } from "@/components/Health";
-import { RxMark } from "@/components/Icons";
+import { Activity, Book, ChatIcon, Gauge, Heart, Logo, Phone } from "@/components/Icons";
 import { Knowledge } from "@/components/Knowledge";
 import { Traces } from "@/components/Traces";
-import { PERSONAS } from "@/lib/personas";
+import { PERSONAS, persona } from "@/lib/personas";
 import { publicJSON } from "@/lib/api";
 
 const AREAS = {
   patient: { label: "Patient", tabs: ["Chat", "Health", "WhatsApp"] },
-  office: { label: "Office copy", tabs: ["Traces", "Evals", "Knowledge"] },
+  office: { label: "Operations", tabs: ["Traces", "Evals", "Knowledge"] },
 } as const;
+const TAB_ICON: Record<string, (p: { size?: number }) => React.ReactElement> = {
+  Chat: ChatIcon, Health: Heart, WhatsApp: Phone, Traces: Activity, Evals: Gauge, Knowledge: Book,
+};
 type Area = keyof typeof AREAS;
 type Meta = { mode: string; models: { fast: string; smart: string }; prompt_version: string; kb_version: string; tools: string[]; storage?: { checkpoints: string; cache: string } };
 
@@ -26,50 +29,56 @@ export default function Home() {
   const current = tab[area];
 
   return (
-    <div className={`shell area-${area}`}>
-      <header className="letterhead">
-        <div className="lh-band">
-          <div className="lh-brand">
-            <RxMark size={26} className="lh-rx" />
-            <span className="lh-name">Sahay</span>
-            <span className="lh-deva" lang="hi">सहाय</span>
-            <span className="lh-line">Grounded care assistant · every answer cites its source · emergencies go to a human</span>
+    <div className={`app area-${area}`}>
+      <aside className="side">
+        <div className="brand">
+          <Logo size={26} className="brand-logo" title="Sahay" />
+          <span className="brand-name">Sahay</span>
+          <span className="brand-deva" lang="hi">सहाय</span>
+        </div>
+        <div className="areas" role="tablist" aria-label="Area">
+          {(Object.keys(AREAS) as Area[]).map((a) => (
+            <button key={a} role="tab" aria-selected={area === a} className="area" onClick={() => setArea(a)}>{AREAS[a].label}</button>
+          ))}
+        </div>
+        <nav className="nav" role="tablist" aria-label={AREAS[area].label}>
+          {AREAS[area].tabs.map((t) => {
+            const Icon = TAB_ICON[t];
+            return (
+              <button key={t} role="tab" className="nav-item" aria-selected={current === t} onClick={() => setTab({ ...tab, [area]: t })}>
+                <Icon size={17} />{t}
+              </button>
+            );
+          })}
+        </nav>
+        <div className="side-foot">
+          <div className="engine-card" title={meta ? `kb ${meta.kb_version}${meta.storage ? ` · ${meta.storage.checkpoints} · ${meta.storage.cache}` : ""}` : undefined}>
+            <span className="label">Engine</span>
+            <div className="engine">
+              {meta === undefined ? "Connecting…" : meta === null ? <b className="engine-down">Backend offline</b> : (
+                <>
+                  <span className={`engine-dot${meta.mode === "offline" ? " off" : ""}`} />
+                  <span>{meta.mode === "offline" ? "Offline engine" : `${meta.models.fast} / ${meta.models.smart}`}</span>
+                  <span className="engine-sep">{meta.tools.length} tools</span>
+                </>
+              )}
+            </div>
           </div>
-          <div className="areas" role="tablist" aria-label="Area">
-            {(Object.keys(AREAS) as Area[]).map((a) => (
-              <button key={a} role="tab" aria-selected={area === a} className="area" onClick={() => setArea(a)}>{AREAS[a].label}</button>
-            ))}
+          <div className="me">
+            <span className="avatar" aria-hidden>{area === "patient" ? persona(user).name.split(" ").map((w) => w[0]).join("") : "OP"}</span>
+            {area === "patient" ? (
+              <label className="who">
+                <span className="label">Signed in as</span>
+                <select value={user} onChange={(e) => setUser(e.target.value)} aria-label="Signed in as">
+                  {PERSONAS.map((p) => <option key={p.id} value={p.id}>{p.name} · {p.id}</option>)}
+                </select>
+              </label>
+            ) : <div className="who"><span className="label">Signed in as</span><span className="who-ops">Operations</span></div>}
           </div>
         </div>
-        <div className="lh-sub">
-          <nav className="tabs" role="tablist" aria-label={AREAS[area].label}>
-            {AREAS[area].tabs.map((t) => (
-              <button key={t} role="tab" className="tab" aria-selected={current === t} onClick={() => setTab({ ...tab, [area]: t })}>{t}</button>
-            ))}
-          </nav>
-          <span className="spacer" />
-          {area === "patient" ? (
-            <label className="who">
-              <span className="label">Patient</span>
-              <select value={user} onChange={(e) => setUser(e.target.value)} aria-label="Signed in as">
-                {PERSONAS.map((p) => <option key={p.id} value={p.id}>{p.name} · {p.id}</option>)}
-              </select>
-            </label>
-          ) : <span className="who"><span className="label">Signed in as</span> ops</span>}
-          <span className="engine" title={meta ? `kb ${meta.kb_version}${meta.storage ? ` · ${meta.storage.checkpoints} · ${meta.storage.cache}` : ""}` : undefined}>
-            {meta === undefined ? "Connecting…" : meta === null ? <b className="engine-down">Backend offline</b> : (
-              <>
-                <span className={`engine-dot${meta.mode === "offline" ? " off" : ""}`} />
-                {meta.mode === "offline" ? "Offline engine" : `${meta.models.fast} / ${meta.models.smart}`}
-                <span className="engine-sep">prompt {meta.prompt_version}</span>
-                <span className="engine-sep">{meta.tools.length} tools</span>
-              </>
-            )}
-          </span>
-        </div>
-      </header>
+      </aside>
       <main className="main">
-        {/* Chat stays mounted so a conversation survives a look at Health or the office copy. */}
+        {/* Chat stays mounted so a conversation survives a look at Health or Operations. */}
         <div className="keep" hidden={current !== "Chat"}><Chat user={user} /></div>
         {current === "Health" && <Health user={user} />}
         {current === "WhatsApp" && <Channels />}

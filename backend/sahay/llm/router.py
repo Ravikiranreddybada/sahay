@@ -25,6 +25,12 @@ class ModelRouter:
         self.s = settings
         if provider is not None:
             self.provider = provider
+        elif settings.llm_provider == "gemini" or (
+            settings.llm_provider == "auto" and os.environ.get("GEMINI_API_KEY")
+        ):
+            from .gemini_llm import GeminiLLM
+
+            self.provider = GeminiLLM(timeout_s=settings.llm_timeout_s)
         elif settings.llm_provider == "anthropic" or (
             settings.llm_provider == "auto" and os.environ.get("ANTHROPIC_API_KEY")
         ):
@@ -46,7 +52,12 @@ class ModelRouter:
         return self.breakers[model]
 
     def _model_for(self, tier: Tier) -> str:
+        if self.provider.name == "gemini":
+            return self.s.gemini_model_fast if tier == "fast" else self.s.gemini_model_smart
         return self.s.model_fast if tier == "fast" else self.s.model_smart
+
+    def _fallback_model(self) -> str:
+        return self.s.gemini_model_fallback if self.provider.name == "gemini" else self.s.model_fallback
 
     async def generate(
         self,
@@ -61,7 +72,8 @@ class ModelRouter:
         hints: dict[str, Any] | None = None,
     ) -> LLMResponse:
         primary = self._model_for(tier)
-        chain = [primary] if primary == self.s.model_fallback else [primary, self.s.model_fallback]
+        fallback = self._fallback_model()
+        chain = [primary] if primary == fallback else [primary, fallback]
         last_err: Exception | None = None
         for model in chain:
             br = self._breaker(model)

@@ -11,8 +11,21 @@ function Svg({ size = 18, className, title, children }: P & { children: React.Re
   );
 }
 
-/** The prescription mark: an R whose leg is crossed. */
-export const RxMark = (p: P) => <Svg {...p}><path d="M5 17V3h5a3.5 3.5 0 0 1 0 7H5" /><path d="M8.5 10l7.5 8" /><path d="M11.5 17.5l4.5-4.5" /></Svg>;
+/** Brand mark: a rounded square with a pulse line. */
+export const Logo = ({ size = 22, className, title }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" className={className} aria-hidden={title ? undefined : true} role={title ? "img" : undefined}>
+    {title && <title>{title}</title>}
+    <rect width="24" height="24" rx="6" fill="currentColor" />
+    <path d="M4.5 12.5h3.6l2-4.8 3.4 9 2.2-4.2h3.8" fill="none" stroke="var(--logo-fg, #fff)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+export const ChatIcon = (p: P) => <Svg {...p}><path d="M3.5 4.5h13v9h-7l-4 3v-3h-2z" /></Svg>;
+export const Heart = (p: P) => <Svg {...p}><path d="M10 16.5S3.5 12.6 3.5 8A3.3 3.3 0 0 1 10 6.8 3.3 3.3 0 0 1 16.5 8c0 4.6-6.5 8.5-6.5 8.5z" /></Svg>;
+export const Activity = (p: P) => <Svg {...p}><path d="M2.5 10h3.5l2-5.5 4 11 2-5.5h3.5" /></Svg>;
+export const Gauge = (p: P) => <Svg {...p}><path d="M3 14a7 7 0 1 1 14 0" /><path d="m10 14 3.5-4.500" /></Svg>;
+export const Book = (p: P) => <Svg {...p}><path d="M4 3.5h9a2 2 0 0 1 2 2v11H6a2 2 0 0 1-2-2z" /><path d="M4 14.5a2 2 0 0 1 2-2h9" /></Svg>;
+export const Plus = (p: P) => <Svg {...p}><path d="M10 4v12M4 10h12" /></Svg>;
+export const Chevron = (p: P) => <Svg {...p}><path d="m6 8 4 4 4-4" /></Svg>;
 export const Mic = (p: P) => <Svg {...p}><rect x="7.5" y="2.5" width="5" height="9" rx="2.5" /><path d="M4.5 9.5a5.5 5.5 0 0 0 11 0" /><path d="M10 15v2.5" /></Svg>;
 export const Stop = (p: P) => <Svg {...p}><rect x="5" y="5" width="10" height="10" rx="1.5" /></Svg>;
 export const Send = (p: P) => <Svg {...p}><path d="M3.5 10h12" /><path d="M11 5.5 15.5 10 11 14.5" /></Svg>;

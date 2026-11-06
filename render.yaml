@@ -12,3 +12,4 @@ services:
       - { key: SAHAY_AUTH_SECRET, generateValue: true }
       - { key: WEB_CONCURRENCY, value: "1" }       # free tier = 512 MB
       - { key: ANTHROPIC_API_KEY, sync: false }    # optional; unset = offline engine
+      - { key: GEMINI_API_KEY, sync: false }       # optional; add in Render dashboard / CLI, never commit

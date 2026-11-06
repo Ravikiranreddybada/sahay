@@ -49,7 +49,7 @@ async def build_agent(settings: Settings | None = None, *, provider: LLM | None 
         from .obs.otel import OTLPExporter
 
         hdrs = dict(kv.split("=", 1) for kv in (s.otlp_headers or "").split(",") if "=" in kv)
-        prov = "sahay.offline" if deps.router.mode == "offline" else "anthropic"
+        prov = "sahay.offline" if deps.router.mode == "offline" else deps.router.mode
         deps.traces.exporter = OTLPExporter(s.otlp_endpoint, hdrs, provider=prov)
     agent = Agent(deps, checkpointer)
     agent.redis = redis

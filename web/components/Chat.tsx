@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Answer } from "./Answer";
-import { Check, Cross, Mic, Panel, RxMark, Send, Sheet, Stop, ThumbDown, ThumbUp } from "./Icons";
+import { Activity, Alert, Check, Chevron, ChatIcon, Cross, Heart, Mic, Logo, Panel, Plus, Send, Stop, ThumbDown, ThumbUp } from "./Icons";
 import { Stamp } from "./Stamp";
 import { Waterfall } from "./Waterfall";
 import { getJSON, postJSON, streamChat, streamConfirm, type Trace, type TurnResult } from "@/lib/api";
@@ -38,7 +38,13 @@ const SUGGESTIONS: { group: string; items: { label: string; q: string }[] }[] = 
     { label: "Out of scope", q: "Which crypto coin should I buy this week?" },
   ] },
 ];
-const STARTERS = ["Where is my order ORD-1042?", "is my father's HbA1c going up?", "Is Aarav's next vaccine due?", "Cancel order ORD-1043"];
+
+const GROUP_META = [
+  { icon: ChatIcon, blurb: "Track orders, check claims, understand refunds and plan terms." },
+  { icon: Heart, blurb: "Family medicines, interaction checks, lab trends, visit briefs." },
+  { icon: Activity, blurb: "Vaccination schedules, reminders and surgery preparation." },
+  { icon: Alert, blurb: "See how emergencies, injections and out-of-scope asks are handled." },
+];
 
 const NODES: [string, string][] = [
   ["guard_in", "Safety screen"], ["classify", "Understand the request"], ["plan_tools", "Call live tools"], ["confirm", "Wait for your Yes"],
@@ -85,6 +91,7 @@ export function Chat({ user }: { user: string }) {
   const [trace, setTrace] = useState<Trace | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [marginOpen, setMarginOpen] = useState(false);
+  const [group, setGroup] = useState(0);
   const end = useRef<HTMLDivElement>(null);
   const rec = useRef<SpeechRec | null>(null);
   const [listening, setListening] = useState(false);
@@ -111,7 +118,11 @@ export function Chat({ user }: { user: string }) {
     r.start();
   }
 
-  useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [msgs, busy]);
+  // Keep an active conversation in view, but do not push a fresh welcome screen
+  // past its opening context on first render.
+  useEffect(() => {
+    if (msgs.length || busy) end.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [msgs.length, busy]);
   useEffect(() => {
     if (!focus?.trace_id) { setTrace(null); return; }
     getJSON<Trace>(`v1/traces/${focus.trace_id}`, user).then(setTrace).catch(() => setTrace(null));
@@ -166,57 +177,84 @@ export function Chat({ user }: { user: string }) {
   const lastBot = msgs.reduce((acc, m, i) => (m.role === "bot" ? i : acc), -1);
   const me = persona(user);
 
+  const composer = (
+    <form className="composer" onSubmit={(e) => { e.preventDefault(); send(input); }}>
+        {canSpeak && (
+          <>
+            <button type="button" className={`icon-btn mic${listening ? " on" : ""}`} onClick={toggleMic} aria-pressed={listening} aria-label={listening ? "Stop voice input" : "Speak your message"}>{listening ? <Stop size={18} /> : <Mic size={18} />}</button>
+            <div className="lang" role="radiogroup" aria-label="Voice language">
+              <button type="button" role="radio" aria-checked={lang === "en-IN"} onClick={() => setLang("en-IN")}>EN</button>
+              <button type="button" role="radio" aria-checked={lang === "hi-IN"} onClick={() => setLang("hi-IN")} lang="hi">हिं</button>
+            </div>
+          </>
+        )}
+        <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about an order, report, claim, family medicines or journey…" maxLength={2000} aria-label="Message" />
+        <button className="btn primary" disabled={busy || !input.trim()}><Send size={16} />Send</button>
+      </form>
+  );
+
   return (
     <div className="chat">
-      <aside className="register" aria-label="Patient and examples">
-        <section className="reg-patient">
-          <h3 className="label">Patient</h3>
-          <p className="reg-name">{me.name}</p>
-          <p className="reg-meta"><span className="mono">{me.id}</span> · {me.place}</p>
-          <p className="reg-note">{me.note}</p>
-        </section>
-        {SUGGESTIONS.map((g) => (
-          <section key={g.group}>
-            <h3 className="label">{g.group}</h3>
-            {g.items.map((s) => (
-              <button key={s.q} className="suggestion" onClick={() => send(s.q)} disabled={busy}>
-                <span className="sg-label">{s.label}</span>
-                <span className="sg-q">{s.q}</span>
-              </button>
-            ))}
-          </section>
-        ))}
-      </aside>
-
-      <section className="pad" aria-label="Consultation">
+      <section className="pad" aria-label="Chat">
         <div className="pad-head">
-          <Sheet size={16} />
-          <span className="label">Consultation</span>
-          <span className="mono pad-thread">{thread}</span>
+          <span className="pad-title">{me.name}</span>
+          <span className="mono pad-thread">{me.id} · {me.place}</span>
           <span className="spacer" />
-          <button className="btn ghost margin-toggle" onClick={() => setMarginOpen(true)}><Panel size={16} />How this was made</button>
-          <button className="btn ghost" onClick={newSheet} disabled={busy || !msgs.length}>New sheet</button>
+          <details className="menu">
+            <summary className="btn ghost">Examples<Chevron size={14} /></summary>
+            <div className="menu-pop">
+              {SUGGESTIONS.map((g) => (
+                <div key={g.group}>
+                  <h3 className="label">{g.group}</h3>
+                  {g.items.map((x) => (
+                    <button key={x.q} className="menu-item" disabled={busy} onClick={(e) => { (e.currentTarget.closest("details") as HTMLDetailsElement).open = false; send(x.q); }}>
+                      <span>{x.label}</span><span className="muted">{x.q}</span>
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </details>
+          <button className="btn ghost margin-toggle" onClick={() => setMarginOpen(true)}><Panel size={16} />Details</button>
+          <button className="btn ghost" onClick={newSheet} disabled={busy || !msgs.length}><Plus size={16} />New chat</button>
         </div>
 
         <div className="entries" aria-live="polite">
           {msgs.length === 0 && (
             <div className="blank">
-              <h2>What do you need help with today?</h2>
-              <p>Orders, lab reports, claims, family medicines, and your vaccination or surgery journey. Every answer cites where it came from, and nothing is changed without your Yes.</p>
+              <span className="tag"><i />Grounded care assistant · demo data</span>
+              <h2>What can we sort out<br /><em>for your family today?</em></h2>
+              <p>Every answer cites its source, emergencies go to a human, and nothing changes without your Yes.</p>
+              <div className="flow" aria-hidden><span>Checks policy</span>→<span>Calls live tools</span>→<span>Verifies every answer</span></div>
+              {composer}
+              <div className="cats" role="tablist" aria-label="Example topics">
+                {SUGGESTIONS.map((g, i) => {
+                  const Icon = GROUP_META[i].icon;
+                  return (
+                    <button key={g.group} role="tab" className="cat" aria-selected={group === i} onClick={() => setGroup(i)}>
+                      <span className="cat-ico"><Icon size={18} /></span>
+                      <b>{g.group}</b>
+                      <small>{GROUP_META[i].blurb}</small>
+                    </button>
+                  );
+                })}
+              </div>
               <ul className="starters">
-                {STARTERS.map((q) => <li key={q}><button onClick={() => send(q)} disabled={busy}>{q}<Send size={16} /></button></li>)}
+                {SUGGESTIONS[group].items.map((x) => (
+                  <li key={x.q}><button onClick={() => send(x.q)} disabled={busy}><span className="sg-label">{x.label}</span><span className="sg-q">{x.q}</span></button></li>
+                ))}
               </ul>
+              <p className="blank-note">{me.note}</p>
             </div>
           )}
           {msgs.map((m, i) =>
             m.role === "user" ? (
               <div key={i} className="entry entry-q">
-                <span className="entry-mark">You</span>
                 <p className="ballpoint">{m.text}</p>
               </div>
             ) : (
               <article key={i} className={`entry entry-a${i !== lastBot ? " past" : ""}${focus?.trace_id === m.result.trace_id ? " focused" : ""}`} onClick={() => setFocus(m.result)}>
-                <span className="entry-mark"><RxMark size={18} title="Sahay" /></span>
+                <span className="entry-mark"><Logo size={24} title="Sahay" /></span>
                 <div className="entry-body">
                   {m.result.intent === "emergency" && (
                     <div className="alarm-band" role="alert"><b>Emergency.</b> A human on the care team has been alerted.</div>
@@ -224,9 +262,8 @@ export function Chat({ user }: { user: string }) {
                   <Answer text={m.result.answer ?? ""} onCite={() => { setFocus(m.result); setMarginOpen(true); }} />
                   {m.result.status === "needs_confirmation" && m.result.pending_action && !m.resolved && (
                     <div className="sign">
-                      <span className="label">Your signature needed</span>
+                      <span className="label">Confirmation needed</span>
                       <p>{m.result.pending_action.summary}</p>
-                      <div className="sign-line" aria-hidden />
                       <div className="row">
                         <button className="btn primary" disabled={busy} onClick={(e) => { e.stopPropagation(); decide(true); }}>Yes, go ahead</button>
                         <button className="btn" disabled={busy} onClick={(e) => { e.stopPropagation(); decide(false); }}>No, don&apos;t</button>
@@ -254,28 +291,16 @@ export function Chat({ user }: { user: string }) {
           )}
           {busy && (
             <div className="entry entry-a writing">
-              <span className="entry-mark"><RxMark size={18} /></span>
-              <p className="writing-line">Writing<span className="mono">{NODES.find(([n]) => n === live.at(-1))?.[1] ?? "Starting"}</span></p>
+              <span className="entry-mark"><Logo size={24} /></span>
+              <p className="writing-line">Working<span className="mono">{NODES.find(([n]) => n === live.at(-1))?.[1] ?? "Starting"}</span></p>
             </div>
           )}
           {error && <div className="err" role="alert">{error}</div>}
           <div ref={end} />
         </div>
 
-        <form className="composer" onSubmit={(e) => { e.preventDefault(); send(input); }}>
-          {canSpeak && (
-            <>
-              <button type="button" className={`icon-btn mic${listening ? " on" : ""}`} onClick={toggleMic} aria-pressed={listening} aria-label={listening ? "Stop voice input" : "Speak your message"}>{listening ? <Stop size={18} /> : <Mic size={18} />}</button>
-              <div className="lang" role="radiogroup" aria-label="Voice language">
-                <button type="button" role="radio" aria-checked={lang === "en-IN"} onClick={() => setLang("en-IN")}>EN</button>
-                <button type="button" role="radio" aria-checked={lang === "hi-IN"} onClick={() => setLang("hi-IN")} lang="hi">हिं</button>
-              </div>
-            </>
-          )}
-          <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about an order, report, claim, family medicines or journey…" maxLength={2000} aria-label="Message" />
-          <button className="btn primary" disabled={busy || !input.trim()}><Send size={16} />Send</button>
-        </form>
-        <p className="pad-foot">Signed session for {me.name} · personal details are redacted before any model or log sees them · emergencies go to a human immediately</p>
+        {msgs.length > 0 && composer}
+        <p className="pad-foot">Personal details are redacted before any model or log sees them. Emergencies go to a human immediately.</p>
       </section>
 
       <aside className={`margin${marginOpen ? " open" : ""}`} aria-label="How this answer was made">

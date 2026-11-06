@@ -35,8 +35,10 @@ cd web && npm install && npm run dev                              # http://local
 cd backend && ../.venv/bin/pytest -q && ../.venv/bin/python -m evals.run_evals
 docker compose up --build                                         # full stack: Postgres, Redis, remote MCP server
 ```
-Set `ANTHROPIC_API_KEY` to use Claude (Haiku 5.5 fast tier, Sonnet 5.5 smart tier). Without it, the deterministic
-offline engine runs everything — it is also the production degradation mode (ADR-0015).
+Set `GEMINI_API_KEY` to use Gemini (2.5 Flash fast tier, 2.5 Pro smart tier), or
+`ANTHROPIC_API_KEY` to use Claude. With `SAHAY_LLM_PROVIDER=auto` (the default), Gemini takes
+precedence when both keys are set. Without either key, the deterministic offline engine runs
+everything — it is also the production degradation mode (ADR-0015).
 
 ## Status (honest)
 | Area | State |
