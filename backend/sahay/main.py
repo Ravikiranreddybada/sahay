@@ -417,7 +417,12 @@ async def reminders_run(req: Request) -> dict[str, Any]:
 @app.get("/v1/meta")
 async def meta(req: Request) -> dict[str, Any]:
     d = _agent(req).deps
-    return {"mode": d.router.mode, "models": {"fast": d.settings.model_fast, "smart": d.settings.model_smart},
+    models = (
+        {"fast": d.settings.gemini_model_fast, "smart": d.settings.gemini_model_smart}
+        if d.router.mode == "gemini"
+        else {"fast": d.settings.model_fast, "smart": d.settings.model_smart}
+    )
+    return {"mode": d.router.mode, "models": models,
             "prompt_version": d.settings.prompt_version, "kb_version": d.kb_version, "tools": sorted(d.hub.tools),
             "breakers": {k: v.state for k, v in d.router.breakers.items()},
             "storage": {"checkpoints": "postgres" if d.settings.database_url else "sqlite",
