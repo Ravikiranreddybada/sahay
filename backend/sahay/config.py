@@ -25,8 +25,11 @@ class Settings(BaseSettings):
     # Gemini 2.5 is restricted for newer Google AI Studio projects. Use the
     # current broadly-available Flash family by default; each can be overridden
     # with SAHAY_GEMINI_MODEL_* if the project has a different entitlement.
-    gemini_model_fast: str = "gemini-3.8-flash"
-    gemini_model_smart: str = "gemini-3.8-flash"
+    # Flash-Lite is the currently available, low-latency model for this project.
+    # Keeping the same model for both tiers avoids a slow unavailable primary tier
+    # consuming the web proxy's response window before the safe fallback can run.
+    gemini_model_fast: str = "gemini-3.5-flash-lite"
+    gemini_model_smart: str = "gemini-3.5-flash-lite"
     gemini_model_fallback: str = "gemini-3.5-flash-lite"
     llm_timeout_s: float = 20.0
     llm_max_retries: int = 2

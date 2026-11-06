@@ -35,7 +35,7 @@ cd web && npm install && npm run dev                              # http://local
 cd backend && ../.venv/bin/pytest -q && ../.venv/bin/python -m evals.run_evals
 docker compose up --build                                         # full stack: Postgres, Redis, remote MCP server
 ```
-Set `GEMINI_API_KEY` to use Gemini (3.8 Flash default tier), or
+Set `GEMINI_API_KEY` to use Gemini (3.5 Flash-Lite default tier), or
 `ANTHROPIC_API_KEY` to use Claude. With `SAHAY_LLM_PROVIDER=auto` (the default), Gemini takes
 precedence when both keys are set. Without either key, the deterministic offline engine runs
 everything — it is also the production degradation mode (ADR-0015).
