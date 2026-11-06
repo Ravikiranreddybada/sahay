@@ -93,13 +93,14 @@ class GeminiLLM:
             payload["toolConfig"] = {"functionCallingConfig": cfg}
         try:
             response = await self._client.post(
-                self._endpoint.format(model=model), params={"key": self._api_key}, json=payload,
+                self._endpoint.format(model=model), headers={"x-goog-api-key": self._api_key}, json=payload,
             )
         except (httpx.TimeoutException, httpx.RequestError) as exc:
             raise LLMError(str(exc)) from exc
-        if response.status_code == 429 or response.status_code >= 500:
-            raise LLMError(response.text[:500])
-        response.raise_for_status()
+        if response.is_error:
+            # Do not let a provider-side validation or model-availability problem turn
+            # into a 500. The router will record it and use the safe offline fallback.
+            raise LLMError(f"Gemini API {response.status_code}: {response.text[:400]}")
         data = response.json()
         candidates = data.get("candidates", [])
         if not candidates:

@@ -20,9 +20,10 @@ async def test_gemini_maps_text_tools_and_usage(gemini_key):
 
     async def handler(request: httpx.Request) -> httpx.Response:
         captured["url"] = str(request.url)
+        captured["api_key"] = request.headers.get("x-goog-api-key")
         captured["body"] = json.loads(request.content)
         return httpx.Response(200, json={
-            "modelVersion": "gemini-2.5-flash-001",
+            "modelVersion": "gemini-3.8-flash-001",
             "candidates": [{"finishReason": "STOP", "content": {"parts": [{"text": "Done."}, {"functionCall": {"id": "c1", "name": "lookup", "args": {"id": "42"}}}]}}],
             "usageMetadata": {"promptTokenCount": 11, "cachedContentTokenCount": 3, "candidatesTokenCount": 7},
         })
@@ -30,12 +31,13 @@ async def test_gemini_maps_text_tools_and_usage(gemini_key):
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
         llm = GeminiLLM(client=client)
         result = await llm.generate(
-            model="gemini-2.5-flash", system="Be precise.", messages=[{"role": "user", "content": "Check this."}],
+            model="gemini-3.8-flash", system="Be precise.", messages=[{"role": "user", "content": "Check this."}],
             tools=[ToolSpec("lookup", "Look something up.", {"type": "object", "properties": {"id": {"type": "string"}}})],
             tool_choice={"type": "tool", "name": "lookup"},
         )
 
-    assert "key=test-key" in captured["url"]
+    assert "key=test-key" not in captured["url"]
+    assert captured["api_key"] == "test-key"
     assert captured["body"]["toolConfig"]["functionCallingConfig"]["mode"] == "ANY"
     assert captured["body"]["tools"][0]["functionDeclarations"][0]["parametersJsonSchema"]["type"] == "object"
     assert result.text == "Done."
@@ -54,5 +56,5 @@ def test_gemini_translates_tool_repair_turn():
 
 def test_gemini_uses_gemini_model_fallback(gemini_key):
     router = ModelRouter(Settings(), provider=type("GeminiProvider", (), {"name": "gemini"})())
-    assert router._model_for("smart") == "gemini-2.5-pro"
-    assert router._fallback_model() == "gemini-2.5-flash"
+    assert router._model_for("smart") == "gemini-3.8-flash"
+    assert router._fallback_model() == "gemini-3.5-flash-lite"

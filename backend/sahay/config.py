@@ -22,9 +22,12 @@ class Settings(BaseSettings):
     model_fast: str = "claude-haiku-5-5"  # intent, routing, verification
     model_smart: str = "claude-sonnet-5-5"  # answer synthesis, tool planning
     model_fallback: str = "claude-haiku-5-5"  # used when the breaker opens on model_smart
-    gemini_model_fast: str = "gemini-2.5-flash"
-    gemini_model_smart: str = "gemini-2.5-pro"
-    gemini_model_fallback: str = "gemini-2.5-flash"
+    # Gemini 2.5 is restricted for newer Google AI Studio projects. Use the
+    # current broadly-available Flash family by default; each can be overridden
+    # with SAHAY_GEMINI_MODEL_* if the project has a different entitlement.
+    gemini_model_fast: str = "gemini-3.8-flash"
+    gemini_model_smart: str = "gemini-3.8-flash"
+    gemini_model_fallback: str = "gemini-3.5-flash-lite"
     llm_timeout_s: float = 20.0
     llm_max_retries: int = 2
     # L3 of the degradation ladder (docs/04-system-design): when every model fails, the
