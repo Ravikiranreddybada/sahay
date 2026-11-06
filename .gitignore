@@ -11,3 +11,5 @@ infra/terraform/.terraform/
 *.tfstate*
 backend/.pytest_cache/
 web/tsconfig.tsbuildinfo
+.vercel
+.env*
